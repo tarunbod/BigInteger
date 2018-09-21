@@ -81,6 +81,11 @@ public class BigInteger {
         if (integer.charAt(0) == '+' || integer.charAt(0) == '-') {
             integer = integer.substring(1);
         }
+
+        if (checkAllZeros(integer)) {
+            return new BigInteger(); // if all digits are 0, return a BigInteger with the default values (not negative, 0 digits, front node is null)
+        }
+
         int numDigits = 0;
 
         // removes leading 0s
@@ -90,9 +95,7 @@ public class BigInteger {
                 break;
             }
         }
-        if (checkAllZeros(integer)) {
-            return new BigInteger(); // if all digits are 0, return a BigInteger with the default values (not negative, 0 digits, front node is null)
-        }
+
         DigitNode front = new DigitNode(Character.digit(integer.charAt(0), 10), null);
         for (int i = 1; i < integer.length(); i++) {
             char curr = integer.charAt(i);
@@ -143,15 +146,17 @@ public class BigInteger {
             second = temp;
         }
 
-        // make sure that if only one of the integers is negative, it is the one referred to by first
-        if (second.negative && !first.negative) {
+//        boolean switched = false;
+//        // make sure that if only one of the integers is negative, it is the one referred to by first
+//        if (second.negative && !first.negative) {
 //            second.negative = false;
 //            first.negative = true;
-            BigInteger temp;
-            temp = first;
-            first = second;
-            second = temp;
-        }
+//            switched = true;
+////            BigInteger temp;
+////            temp = first;
+////            first = second;
+////            second = temp;
+//        }
         // now first is the number with less digits and negative if needed
 
         DigitNode firstPtr = first.front, secondPtr = second.front;
@@ -196,11 +201,13 @@ public class BigInteger {
             System.out.println(first);
             System.out.println(second);
             int newNumDigits = second.numDigits; // TODO: change
-
+            boolean negative = false;
             /*
-            7  6  4
-            6  8  2
-            1 -2  2
+             7  6  4
+             6  8  2
+            -1 -2  2
+
+             1  8  1
              */
 
             DigitNode newFront = new DigitNode(secondPtr.digit - firstPtr.digit, null);
@@ -219,20 +226,25 @@ public class BigInteger {
 
             ptr = newFront;
             for (int i = 0; i < second.numDigits; i++) {
-                if (ptr.digit >= 10) {
+                if (ptr.digit < 0) {
                     if (i == second.numDigits - 1) {
-                        ptr.next = new DigitNode(ptr.digit / 10, null);
-                        newNumDigits += 1; // extra digit due to carry
+//                        ptr.next = new DigitNode(ptr.digit / 10, null);
+                        negative = true;
+//                        newNumDigits += 1; // extra digit due to carry
                     } else {
                         ptr.next.digit -= 1;
                     }
-                    ptr.digit %= 10;
+                    ptr.digit += 10;
                 }
                 ptr = ptr.next;
             }
 
+//            if (switched) {
+//                negative = true;
+//            }
+
             BigInteger result = new BigInteger();
-            result.negative = first.negative; // TODO: change
+            result.negative = negative; // TODO: change
             result.front = newFront;
             result.numDigits = newNumDigits;
             return result;
@@ -270,10 +282,6 @@ public class BigInteger {
         return result;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @SuppressWarnings("StringContatenationInLoop")
     public String toString() {
         if (front == null) {
             return "0";
