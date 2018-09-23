@@ -138,35 +138,23 @@ public class BigInteger {
             return second;
         }
 
-        // make sure BigInteger first has less than or same # digits as second
-        if (second.numDigits < first.numDigits) {
-            BigInteger temp;
-            temp = first;
-            first = second;
-            second = temp;
-        }
+        int c = compareSize(first, second);
 
-//        boolean switched = false;
-//        // make sure that if only one of the integers is negative, it is the one referred to by first
-//        if (second.negative && !first.negative) {
-//            second.negative = false;
-//            first.negative = true;
-//            switched = true;
-////            BigInteger temp;
-////            temp = first;
-////            first = second;
-////            second = temp;
-//        }
-        // now first is the number with less digits and negative if needed
-
-        DigitNode firstPtr = first.front, secondPtr = second.front;
         if (first.negative == second.negative) {
+            if (c == 1) { // first is bigger
+                BigInteger temp;
+                temp = first;
+                first = second;
+                second = temp;
+            }
+
+            DigitNode firstPtr = first.front, secondPtr = second.front;
             int newNumDigits = second.numDigits;
 
             DigitNode newFront = new DigitNode(firstPtr.digit + secondPtr.digit, null);
             DigitNode ptr = newFront;
             for (int i = 1; i < second.numDigits; i++) {
-                firstPtr = firstPtr.next;
+                firstPtr = firstPtr == null ? null : firstPtr.next;
                 secondPtr = secondPtr.next;
                 if (firstPtr == null) { // if first has less digits and we ran out of them
                     ptr.next = new DigitNode(secondPtr.digit, null);
@@ -197,23 +185,34 @@ public class BigInteger {
             result.numDigits = newNumDigits;
             return result;
         } else { // SUBTRACTING!
-            System.out.println("Subtracting");
+            if (c == 0) {
+                return new BigInteger(); // numbers are equal, return 0
+            }
+
+            // MAKE SECOND THE POSITIVE AND LARGER NUMBER. ALWAYS
+            boolean switched = false;
+            if (c == 1) {
+                System.out.println("first bigger");
+                BigInteger temp;
+                temp = first;
+                first = second;
+                second = temp;
+            }
+
+            if (second.negative) { // if second is negative (and is already larger in magnitude), switch signs
+                first.negative = true;
+                second.negative = false;
+                switched = true;
+            }
+
             System.out.println(first);
             System.out.println(second);
-            int newNumDigits = second.numDigits; // TODO: change
-            boolean negative = false;
-            /*
-             7  6  4
-             6  8  2
-            -1 -2  2
 
-             1  8  1
-             */
-
+            DigitNode firstPtr = first.front, secondPtr = second.front;
             DigitNode newFront = new DigitNode(secondPtr.digit - firstPtr.digit, null);
             DigitNode ptr = newFront;
             for (int i = 1; i < second.numDigits; i++) {
-                firstPtr = firstPtr.next;
+                firstPtr = firstPtr == null ? null : firstPtr.next;
                 secondPtr = secondPtr.next;
                 if (firstPtr == null) { // if first has less digits and we ran out of them
                     ptr.next = new DigitNode(secondPtr.digit, null);
@@ -225,31 +224,51 @@ public class BigInteger {
             }
 
             ptr = newFront;
-            for (int i = 0; i < second.numDigits; i++) {
+            while (ptr != null) {
                 if (ptr.digit < 0) {
-                    if (i == second.numDigits - 1) {
-//                        ptr.next = new DigitNode(ptr.digit / 10, null);
-                        negative = true;
-//                        newNumDigits += 1; // extra digit due to carry
-                    } else {
-                        ptr.next.digit -= 1;
-                    }
                     ptr.digit += 10;
+                    ptr.next.digit -= 1;
                 }
                 ptr = ptr.next;
             }
 
-//            if (switched) {
-//                negative = true;
-//            }
+            /* TODO:
+             - REMOVE TRAILING ZEROS
+             - ADD CORRECT SIGN
+             - CORRECT numDigits
+             - jerk off
+            */
 
             BigInteger result = new BigInteger();
-            result.negative = negative; // TODO: change
             result.front = newFront;
-            result.numDigits = newNumDigits;
+
             return result;
         }
+    }
 
+    private static int compareSize(BigInteger first, BigInteger second) {
+        if (first.numDigits > second.numDigits) {
+            return 1;
+        } else if (second.numDigits > first.numDigits) {
+            return -1;
+        } else { // equal numDigits
+            for (int j = first.numDigits - 1; j >= 0; j--) {
+                DigitNode firstPtr = first.front;
+                DigitNode secondPtr = second.front;
+                for (int i = 0; i < j; i++) {
+                    firstPtr = firstPtr.next;
+                    secondPtr = secondPtr.next;
+                }
+                if (firstPtr.digit != secondPtr.digit) {
+                    if (firstPtr.digit > secondPtr.digit) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                }
+            }
+            return 0; // identical
+        }
     }
 
     /**
@@ -266,18 +285,19 @@ public class BigInteger {
         if (first.front == null || second.front == null) {
             return new BigInteger(); // return 0 because one of the factors is 0
         }
-        boolean negative = first.negative != second.negative; // if not the same sign, answer is negative
+
         BigInteger result = new BigInteger();
-        result.negative = negative;
 
         DigitNode firstPtr = first.front;
         for (int i = 0; i < first.numDigits; i++) {
-             int c = firstPtr.digit * ((int) Math.pow(10, i));
-             for (int j = 0; j < c; j++) {
-                 result = BigInteger.add(result, second);
-             }
-             firstPtr = firstPtr.next;
-         }
+            int c = firstPtr.digit * ((int) Math.pow(10, i));
+            for (int j = 0; j < c; j++) {
+                result = BigInteger.add(result, second);
+            }
+            firstPtr = firstPtr.next;
+        }
+
+        result.negative = first.negative != second.negative; // if not the same sign, answer is negative
 
         return result;
     }
