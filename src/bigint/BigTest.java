@@ -14,9 +14,6 @@ public class BigTest {
 		try {
 			BigInteger bigInteger = BigInteger.parse(integer);
 			System.out.println("\t\tValue = " + bigInteger);
-			System.out.print("\t\tList = "); bigInteger.print();
-			System.out.println("\t\tNegative = " + bigInteger.negative);
-			System.out.println("\t\tNum Digits = " + bigInteger.numDigits);
 		} catch (IllegalArgumentException e) {
 			System.out.println("\t\tIncorrect Format");
 		}
@@ -31,16 +28,9 @@ public class BigTest {
 		System.out.print("\tEnter second integer => ");
 		integer = sc.nextLine();
 		BigInteger secondBigInteger = BigInteger.parse(integer);
-
-		System.out.println("=============");
+		
 		BigInteger result = BigInteger.add(firstBigInteger,secondBigInteger);
-		System.out.println("=============");
-
 		System.out.println("\t\tSum: " + result);
-
-		System.out.print("\t\tList = "); result.print();
-		System.out.println("\t\tNegative = " + result.negative);
-		System.out.println("\t\tNum Digits = " + result.numDigits);
 	}
 	
 	public static void multiply() 
@@ -55,10 +45,7 @@ public class BigTest {
 		
 		BigInteger result = BigInteger.multiply(firstBigInteger,secondBigInteger);
 		System.out.println("\t\tProduct: " + result);
-
-		System.out.print("\t\tList = "); result.print();
-		System.out.println("\t\tNegative = " + result.negative);
-		System.out.println("\t\tNum Digits = " + result.numDigits);
+		
 	}
 	
 	public static void main(String[] args) 
@@ -91,4 +78,3 @@ public class BigTest {
 	}
 
 }
-

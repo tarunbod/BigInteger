@@ -149,8 +149,6 @@ public class BigInteger {
             }
 
             DigitNode firstPtr = first.front, secondPtr = second.front;
-            int newNumDigits = second.numDigits;
-
             DigitNode newFront = new DigitNode(firstPtr.digit + secondPtr.digit, null);
             DigitNode ptr = newFront;
             for (int i = 1; i < second.numDigits; i++) {
@@ -165,12 +163,14 @@ public class BigInteger {
                 }
             }
 
+            boolean carry = false;
+
             ptr = newFront;
             for (int i = 0; i < second.numDigits; i++) {
                 if (ptr.digit >= 10) {
                     if (i == second.numDigits - 1) {
                         ptr.next = new DigitNode(ptr.digit / 10, null);
-                        newNumDigits += 1; // extra digit due to carry
+                        carry = true;
                     } else {
                         ptr.next.digit += ptr.digit / 10;
                     }
@@ -182,7 +182,7 @@ public class BigInteger {
             BigInteger result = new BigInteger();
             result.negative = first.negative;
             result.front = newFront;
-            result.numDigits = newNumDigits;
+            result.numDigits = second.numDigits + (carry ? 1 : 0); // extra digit due to carry
             return result;
         } else { // SUBTRACTING!
             if (c == 0) {
@@ -192,7 +192,6 @@ public class BigInteger {
             // MAKE SECOND THE POSITIVE AND LARGER NUMBER. ALWAYS
             boolean switched = false;
             if (c == 1) {
-                System.out.println("first bigger");
                 BigInteger temp;
                 temp = first;
                 first = second;
@@ -204,9 +203,6 @@ public class BigInteger {
                 second.negative = false;
                 switched = true;
             }
-
-            System.out.println(first);
-            System.out.println(second);
 
             DigitNode firstPtr = first.front, secondPtr = second.front;
             DigitNode newFront = new DigitNode(secondPtr.digit - firstPtr.digit, null);
@@ -232,26 +228,46 @@ public class BigInteger {
                 ptr = ptr.next;
             }
 
-            /* TODO:
-             - REMOVE TRAILING ZEROS
-             - ADD CORRECT SIGN
-             - CORRECT numDigits
-             - jerk off
-            */
+            ptr = newFront;
+            int i = 0, j = -1;
+            while (ptr != null) {
+                if (ptr.digit != 0) {
+                    j = i;
+                }
+                i++;
+                ptr = ptr.next;
+            }
+
+            ptr = newFront;
+            if (j != -1) {
+                for (i = 0; i < j; i++) {
+                    ptr = ptr.next;
+                }
+                ptr.next = null; // remove trailing 0s
+            }
 
             BigInteger result = new BigInteger();
+            result.numDigits = j + 1;
+            result.negative = switched;
             result.front = newFront;
 
             return result;
         }
     }
 
+    /**
+     * Compares the magnitudes of two BigInteger objects.
+     * @param first First BigInteger
+     * @param second Second BigInteger
+     * @return if first is larger in magnitude, 1.
+     * If second is larger in magnitude, -1. If equal magnitudes, 0.
+     */
     private static int compareSize(BigInteger first, BigInteger second) {
         if (first.numDigits > second.numDigits) {
             return 1;
         } else if (second.numDigits > first.numDigits) {
             return -1;
-        } else { // equal numDigits
+        } else { // equal numDigits, compare digit-wise starting at the end of the linked- ist
             for (int j = first.numDigits - 1; j >= 0; j--) {
                 DigitNode firstPtr = first.front;
                 DigitNode secondPtr = second.front;
@@ -318,11 +334,5 @@ public class BigInteger {
 
     }
 
-    public void print() {
-        for (DigitNode ptr = front; ptr != null; ptr = ptr.next) {
-            System.out.print(ptr.digit + " -> ");
-        }
-        System.out.println("\\");
-    }
 }
 
