@@ -219,6 +219,12 @@ public class BigInteger {
                 }
             }
 
+            /*
+            6  5  2
+            2  1  5
+            4  4 -3
+             */
+
             ptr = newFront;
             while (ptr != null) {
                 if (ptr.digit < 0) {
